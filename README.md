@@ -1,70 +1,106 @@
-# Getting Started with Create React App
+# Development workflow
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+![alt text](image-3.png)
 
-## Available Scripts
+The idea of this section is to create a development cycle:
+- Develop
+- Test
+- Deploy 
+For this we are going to use git and docker. The Github repository will serve as the
+central point of coordination for all the code that is going to be written and uploaded
+to outside hosting services. The code behind is NOT the sole purpose of this project! 
+(done in React)
 
-In the project directory, you can run:
+# Structure
+The github repository is going to have to branches. 
+## Feature branch
+Acts as the development branch of sorts. The code is going to be added to, make changes or
+do whatever is needed to update the application
+## Master branch 
+Represents the clean codebase. Any changes applied to the master branch are going to be 
+automatically deployed to our hosting provider.
 
-### `npm start`
+# Procedure
+1. A local machine is going to pull all the latest code from the feature branch.
+2. Make some changes into the codebase.
+3. Push the changes back to github repository to the feature branch. 
+4. After doing so we will request a pull request in order to take all the changes and features added to it to then later add it to the master branch (pull request). This will execute a series of actions that will govern how we manage our codebase. 
+5. When the pull request is done and merged to the master, two important events will occurr.
+- We are going to set a workflow that it is going to automatically take our app and push it
+over to a service called "Travis CLI". What it does is that it pulls our code and runs a set
+a set of tests on your code base. This tests have to be written by yourself (relevant to our
+application)
+- Travis CI after passes all the tests is going to push it to an AWS Elastic Beanstalk.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+# In CLI
+Folllow the documentation on how to install the latest version of NodeJs
+npx create-react-app frontend
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+# React commands:
+npm run start: Starts up a development server (development use only) 
+npm run test: Runs tests associated with the project
+npm run build: Builds a production version of the app
+    This creates a build directory
 
-### `npm test`
+docker build -f Dockerfile.dev
+    Do it after configuring the dockerfile
+    Delete the duplicated node_modules in local host
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+docker run -d -p 3000:3000 -v /app/node_modules -v $(pwd):/app carlostuilm/reactdev
+    1. We want this to be a placeholder for a folder that it's inside the container 
+    (don't map anything against anything else)
+        if we don't do this what will likely happen is that the container won't have
+        who does have the node_modules folder will delete it, since the local machine
+        does not have it!!
+    2. We want to map a folder inside a container to a folder outside the counter
+    3. -it flag is needed because by default we only have the stout of the container
+    and we need the stdin in order to execute commands inside of it
+        Check video 77, to see the limitations of attaching to a container in order to
+        see the tests
 
-### `npm run build`
+# PROD ENV setup
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+npm run build is going to build a production version of the app. It takes all the javascript
+files, process them altogether, puts them altogether in a single file and outputs to an speci
+fic folder in the host machine. 
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+This changes the mechanics of how we must treat the production environment.
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+![alt text](image.png)
 
-### `npm run eject`
+This diagram shows how the dev environment runs. We have that inside our web container the 
+dev sever is running. Whenever our browser makes a request to localhost:3000, it is in fact
+doing a request to Dev Server instead. The Dev Server takes the index.html file, the main.js or
+other file and takes it to the browser. This means that the Dev Server is 100% required in our
+environment.
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+In the production environment the Dev Server does NOT exists. This is because it is not appropiate
+for our production environment (too much unneccesary processing for actual real use)
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+For this we need a Production Server that it's sole purpose is to respond to browser requests with
+the created index.html file and other js files that contains the react app. 
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+![alt text](image-1.png)
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+To solve this we need to use NGINX. It's in charge of taking incoming traffic and routing (somehow)
+responding to it with some static files. For this we are going to create a third container that it's
+going to be our Prod Environment with this server. This production container is going to start an
+NGNIX instance that we are going to serve the static files. 
 
-## Learn More
+A second Dockerfile that it's going to represent our prod environment has to be created in order to 
+do this. We don't want the react dependecies in this server, just the results that it gets. This
+Dockerfile will have a multi-step build process that will have to different blocks of configuration.
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+![alt text](image-2.png)
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+As shown in the diagram, after getting the results from the "npm run build", this will get copied
+in the other phase. When doing that all of the steps done in build phase will be deleted.  
 
-### Code Splitting
+We don't need to specify again the Dockerfile path because this is the predetermined one!
+NGINX uses port 80 instead of 3000 like NodeJS. This is the appropiate way of deploying.
+NOTE: changes won't appear in realtime in the Prod ENV
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+# Github setup
 
-### Analyzing the Bundle Size
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
 
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
