@@ -1,6 +1,6 @@
 # Development workflow
 
-![alt text](image-3.png)
+![alt text](images/image-3.png)
 
 The idea of this section is to create a development cycle:
 - Develop
@@ -66,7 +66,7 @@ fic folder in the host machine.
 
 This changes the mechanics of how we must treat the production environment.
 
-![alt text](image.png)
+![alt text](images/image.png)
 
 This diagram shows how the dev environment runs. We have that inside our web container the 
 dev sever is running. Whenever our browser makes a request to localhost:3000, it is in fact
@@ -80,7 +80,7 @@ for our production environment (too much unneccesary processing for actual real 
 For this we need a Production Server that it's sole purpose is to respond to browser requests with
 the created index.html file and other js files that contains the react app. 
 
-![alt text](image-1.png)
+![alt text](images/image-1.png)
 
 To solve this we need to use NGINX. It's in charge of taking incoming traffic and routing (somehow)
 responding to it with some static files. For this we are going to create a third container that it's
@@ -91,7 +91,7 @@ A second Dockerfile that it's going to represent our prod environment has to be 
 do this. We don't want the react dependecies in this server, just the results that it gets. This
 Dockerfile will have a multi-step build process that will have to different blocks of configuration.
 
-![alt text](image-2.png)
+![alt text](images/image-2.png)
 
 As shown in the diagram, after getting the results from the "npm run build", this will get copied
 in the other phase. When doing that all of the steps done in build phase will be deleted.  
