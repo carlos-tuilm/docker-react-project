@@ -1,0 +1,15 @@
+# Explicitely used for a development environment
+
+FROM node:21-alpine3.18
+
+WORKDIR /app
+
+COPY ./package.json ./
+
+RUN npm install
+
+# docker compose already mounts the volume for us but is a good practice to copy the files
+# when using it in a development environment
+COPY . .
+
+CMD ["npm", "run", "start"]

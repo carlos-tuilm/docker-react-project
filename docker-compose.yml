@@ -1,0 +1,26 @@
+version: "3"
+services:
+  web:
+  # this is the service that will run the application
+    build: 
+    # this is the context of the build, where the Dockerfile is located
+      context: .
+      dockerfile: Dockerfile.dev 
+    ports:
+      - "3000:3000"
+    volumes:
+    # this is the volume that is created to map the local files to the container
+    # this is a two way binding, so any changes in the local files will be reflected in the container
+      - /app/node_modules
+      - .:/app
+  # this is the service that will run the tests
+  tests:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    volumes:
+      - /app/node_modules
+      - .:/app
+      # this is the command that will be run when the container is started
+      # this will run the tests and exit
+    command: ["npm", "run", "test"]

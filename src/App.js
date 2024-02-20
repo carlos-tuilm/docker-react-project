@@ -7,7 +7,8 @@ function App() {
       <header className="App-header">
         <img src={logo} className="App-logo" alt="logo" />
         <p>
-          Edit <code>src/App.js</code> and save to reload.
+          Welcome to the React App! This is the frontend of the application.
+          and it is running in a container. so cool!
         </p>
         <a
           className="App-link"
